@@ -1,0 +1,129 @@
+<div class="row">
+  <div class="col-6" class="form-group">
+    <label for="userName">User Name </label>
+    <input
+      id="userName"
+      name="userName"
+      type="text"
+      class="form-control"
+      placeholder="User Name"
+      class="msg-input"
+      [(ngModel)]="userName"
+    />
+    <input
+      type="button"
+      class="btn btn-primary"
+      (click)="connect()"
+      value="connect"
+    />
+  </div>
+  <div class="col-3">
+    <div class="input-group">
+      <label for="MyConnection">My Connection</label>
+      <input
+        type="text"
+        id="MyConnection"
+        name="MyConnection"
+        class="form-control"
+        placeholder="My Connection"
+        [(ngModel)]="myConnection"
+      />
+    </div>
+  </div>
+  <div class="col-3">
+    <div class="form-group input-group">
+      <label for="RemoteConnection">Remote Connection </label>
+      <input
+        type="text"
+        id="RemoteConnection"
+        name="RemoteConnection"
+        class="form-control"
+        placeholder="Remote Connection"
+        [(ngModel)]="remoteConnection"
+      />
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-6">
+    <video autoplay="true" width="400" height="400" id="localVideo"></video>
+  </div>
+  <div class="col-6">
+    <video autoplay="true" width="400" height="400" id="remoteVideo"></video>
+  </div>
+</div>
+<div class="row">
+  <div class="col-6 btn-group">
+    <input
+      type="button"
+      class="btn btn-primary"
+      (click)="call()"
+      value="call"
+    />
+    <input
+      type="button"
+      class="btn btn-danger"
+      (click)="hangUp()"
+      value="HangUp"
+    />
+    <input
+      type="button"
+      class="btn btn-primary"
+      (click)="muteVideo()"
+      value="Mute Video"
+    />
+    <input
+      type="button"
+      class="btn btn-primary"
+      (click)="muteAudio()"
+      value="Mute Audio"
+    />
+    <input
+      type="button"
+      class="btn btn-info"
+      (click)="shareScreen()"
+      value="Share Screen"
+    />
+    <input
+      type="button"
+      class="btn btn-dark"
+      (click)="record()"
+      value="Record"
+    />
+  </div>
+</div>
+
+<!-- <script>
+
+        $(document).ready(function () {
+                   var that = this;
+            var element = document.getElementById("videoElement");
+            if (navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
+                    .then(function (stream) {
+                        debugger;
+                        element.srcObject = stream;
+                        //that.send(that.conId,stream.id);
+
+                        let mediaRecorderObj = new MediaRecorder(stream);
+                        let chunks = [];
+
+                        mediaRecorderObj.start();
+                        mediaRecorderObj.ondataavailable = function (ev) {
+                            debugger;
+                            var x = chunks.push(ev.data);
+                            debugger;
+                        }
+
+
+                    })
+                    .catch(function (err0r) {
+                        console.log("Something went wrong!");
+                    });
+            }
+            });
+
+          
+
+    </script> -->
