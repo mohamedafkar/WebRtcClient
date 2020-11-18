@@ -27,7 +27,9 @@
               "src/styles.css"
               
             ],
-            "scripts": []
+            "scripts": [
+              "node_modules/webrtc-adapter/dist/adapter_core.js"
+            ]
           },
           "configurations": {
             "production": {

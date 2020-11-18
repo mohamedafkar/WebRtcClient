@@ -6,6 +6,8 @@ import { UserInfo } from "src/app/interfaces/UserInfo";
 import { ConnectService } from "src/app/Services/connect.service";
 import { VideoService } from "src/app/Services/video.service";
 
+//import adapter from "webrtc-adapter";
+
 @Component({
   selector: "app-video",
   templateUrl: "./video.component.html",
@@ -26,7 +28,7 @@ export class VideoComponent implements OnInit {
   localStream: any;
   isAudio = true;
   isVideo = true;
-
+  mediaElement = document.getElementById("MediaElement") as HTMLMediaElement;
   constructor(
     private connectService: ConnectService,
     private videoService: VideoService
@@ -113,10 +115,10 @@ export class VideoComponent implements OnInit {
   async call() {
     let that = this;
     //defind
-    that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
+    that.localVideo = document.getElementById("localVideo") as HTMLMediaElement;
     that.remoteVideo = document.getElementById(
       "remoteVideo"
-    ) as HTMLVideoElement;
+    ) as HTMLMediaElement;
     //video
     if (that.mediaDevices.getUserMedia) {
       that.mediaDevices
@@ -138,6 +140,7 @@ export class VideoComponent implements OnInit {
 
   async shareScreen() {
     let that = this;
+    this.hangUp();
     that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
     that.remoteVideo = document.getElementById(
       "remoteVideo"
@@ -174,37 +177,42 @@ export class VideoComponent implements OnInit {
 
   async record() {
     let that = this;
-    if (this.localStream) {
-      this.mediaRecorder = new MediaRecorder(this.localStream);
-      //let chunks = [];
-      this.mediaRecorder.start(500);
-      this.mediaRecorder.ondataavailable = function (ev) {
-        debugger;
-        that.sendStreamOne({ stream: ev.data });
-        // var reader = new FileReader();
-        // reader.readAsDataURL(ev.data);
-        // reader.onload = reader.onload = readSuccess;
-        // function readSuccess(evt) {
-        //   debugger;
-        //   that.sendStreamOne({ stream: evt.target.result });
-        // }
-        // const blob = this.response;
-        // const reader = new FileReader();
-        // reader.onloadend = function (event) {
-        //   const img = document.createElement("img");
-        //   //img.src = this.result;
-        //   document.getElementById("container").appendChild(img);
-        // };
-        // reader.readAsDataURL(ev.data);
 
-        debugger;
-        //this.sleep(100);
-        //var x = chunks.push(ev.data);
-      };
-    }
+    // if (this.localStream) {
+    //   debugger;
+    //   var x = this.localStream.captureStream();
+    // }
 
-    async function sleep(msec) {
-      return new Promise((resolve) => setTimeout(resolve, msec));
-    }
+    // if (this.localStream) {
+    //   this.mediaRecorder = new MediaRecorder(this.localStream);
+    //   //let chunks = [];
+    //   this.mediaRecorder.start(500);
+    //   this.mediaRecorder.ondataavailable = function (ev) {
+    //     //debugger;
+    //     //that.sendStreamOne({ stream: ev.data });
+    //     // var reader = new FileReader();
+    //     // reader.readAsDataURL(ev.data);
+    //     // reader.onload = reader.onload = readSuccess;
+    //     // function readSuccess(evt) {
+    //     //   debugger;
+    //     //   that.sendStreamOne({ stream: evt.target.result });
+    //     // }
+    //     // const blob = this.response;
+    //     // const reader = new FileReader();
+    //     // reader.onloadend = function (event) {
+    //     //   const img = document.createElement("img");
+    //     //   //img.src = this.result;
+    //     //   document.getElementById("container").appendChild(img);
+    //     // };
+    //     // reader.readAsDataURL(ev.data);
+
+    //     debugger;
+    //     //this.sleep(100);
+    //     //var x = chunks.push(ev.data);
+    //   };
+  }
+
+  async sleep(msec) {
+    return new Promise((resolve) => setTimeout(resolve, msec));
   }
 }
