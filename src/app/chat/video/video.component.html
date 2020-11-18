@@ -45,6 +45,24 @@
   </div>
 </div>
 
+<div calss="row">
+  <span>calling from {{ callingUser }}</span>
+  <input
+    type="button"
+    class="btn btn-primary"
+    (click)="answerCall()"
+    value="Answer"
+  />
+</div>
+
+<div calss="row">
+  <ul *ngFor="let user of users; index as i">
+    <li>
+      <a (click)="CallUser(i)">{{ user.userName + "," + user.connectionId }}</a>
+    </li>
+  </ul>
+</div>
+
 <div class="row">
   <div class="col-6">
     <video autoplay="true" width="400" height="400" id="localVideo"></video>

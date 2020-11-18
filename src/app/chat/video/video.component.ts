@@ -18,6 +18,8 @@ export class VideoComponent implements OnInit {
   remoteConnection: string = "";
   myConnection: string = "";
   userInfo: any = {};
+  users: any = [];
+  callingUser: string;
 
   mediaRecorder: any;
   mediaDevices = navigator.mediaDevices as any;
@@ -41,62 +43,93 @@ export class VideoComponent implements OnInit {
     if (
       this.connectService.connection.state == HubConnectionState.Disconnected
     ) {
-      this.connectService.connection.on(
-        "broadcastConnectionId",
-        (data: any) => {
-          this.myConnection = data;
-          this.userInfo.connectionId = data;
-        }
-      );
-      this.connectService.connection.on("onConnnect", function (userName) {
+      // this.connectService.connection.on(
+      //   "broadcastConnectionId",
+      //   (data: any) => {
+      //     this.myConnection = data;
+      //     this.userInfo.connectionId = data;
+      //   }
+      // );
+      // this.connectService.connection.on("onConnnect", function (userName) {
+      //   debugger;
+      //   var x = userName;
+      // });
+      this.connectService.connection.on("updateUserList", (userList: any) => {
         debugger;
-        var x = userName;
+        this.users = [];
+        userList.forEach((element) => {
+          this.users.push({
+            userName: element.username,
+            connectionId: element.connectionId,
+          });
+        });
       });
-      this.connectService.connection.on("sendStreamToOne", (stream: any) => {
+
+      this.connectService.connection.on("IncomingCall", (user: any) => {
         debugger;
-        this.remoteVideo.srcObject = stream;
+        this.callingUser = user.username;
       });
+
       this.connectService.start();
     }
   }
+
   connect() {
-    this.onConnnect(this.userName);
-  }
-
-  onConnnect(userName: any) {
-    var that = this;
+    //this.onConnnect(this.userName);
     debugger;
-    this.myConnection = this.connectService.connection.connectionId;
-    //debugger;
-    // that.connectService.connection
-    //   .invoke("OnConnnectInvoke", { userName: userName })
-    //   .catch(function (err) {
-    //     debugger;
-    //     return console.error(err.toString());
-    //   });
-    //
-    //this.userInfo = ConnnectResponse;
-
-    this.videoService.onConnect(userName).subscribe(
-      (s) => {
-        // if (s && s.isConnected) {
-        //   that.userInfo.userName = s.userName;
-        //   debugger;
-        //   this.userInfo.allUsers = s.allUsers;
-        //   console.log(
-        //     s.userName +
-        //       " is connected " +
-        //       s.isConnected +
-        //       " id " +
-        //       that.userInfo.ConnectionId
-        //   );
-        // }
-      },
-      (e) => {
-        console.log(e);
-      }
-    );
+    this.connectService.connection
+      .invoke("Join", this.userName)
+      .catch((err) => {
+        console.error(err);
+      });
   }
+
+  CallUser(userIndex: number) {
+    let user = this.users[userIndex];
+    debugger;
+    this.connectService.connection.invoke("CallUser", user).catch((err) => {
+      console.error(err);
+    });
+  }
+
+  answerCall() {
+    debugger;
+  }
+
+  // onConnnect(userName: any) {
+  //   var that = this;
+  //   debugger;
+  //   this.myConnection = this.connectService.connection.connectionId;
+  //   //debugger;
+  //   // that.connectService.connection
+  //   //   .invoke("OnConnnectInvoke", { userName: userName })
+  //   //   .catch(function (err) {
+  //   //     debugger;
+  //   //     return console.error(err.toString());
+  //   //   });
+  //   //
+  //   //this.userInfo = ConnnectResponse;
+
+  //   this.videoService.onConnect(userName).subscribe(
+  //     (s) => {
+  //       // if (s && s.isConnected) {
+  //       //   that.userInfo.userName = s.userName;
+  //       //   debugger;
+  //       //   this.userInfo.allUsers = s.allUsers;
+  //       //   console.log(
+  //       //     s.userName +
+  //       //       " is connected " +
+  //       //       s.isConnected +
+  //       //       " id " +
+  //       //       that.userInfo.ConnectionId
+  //       //   );
+  //       // }
+  //     },
+  //     (e) => {
+  //       console.log(e);
+  //     }
+  //   );
+  // }
 
   sendStreamOne(userStream: any) {
     var that = this;

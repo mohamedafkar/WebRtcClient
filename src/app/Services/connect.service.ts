@@ -9,7 +9,7 @@ import * as signalR from "@microsoft/signalr";
 })
 export class ConnectService implements OnInit {
   public connection: any = new signalR.HubConnectionBuilder()
-    .withUrl("http://localhost:55648/videoHub")
+    .withUrl("https://localhost:44389/ConnectionHub")
     .withAutomaticReconnect()
     .build();
   constructor() {}
@@ -24,7 +24,7 @@ export class ConnectService implements OnInit {
 
   public async start() {
     try {
-      //debugger;
+      debugger;
       await this.connection.start();
       console.log("video connected");
     } catch (err) {
