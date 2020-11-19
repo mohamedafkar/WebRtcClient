@@ -16,8 +16,14 @@
       (click)="connect()"
       value="connect"
     />
+    <input
+      type="button"
+      class="btn btn-info"
+      (click)="DisConnect()"
+      value="DisConnect"
+    />
   </div>
-  <div class="col-3">
+  <!-- <div class="col-3">
     <div class="input-group">
       <label for="MyConnection">My Connection</label>
       <input
@@ -42,17 +48,35 @@
         [(ngModel)]="remoteConnection"
       />
     </div>
-  </div>
+  </div> -->
 </div>
 
 <div calss="row">
-  <span>calling from {{ callingUser }}</span>
-  <input
-    type="button"
-    class="btn btn-primary"
-    (click)="answerCall()"
-    value="Answer"
-  />
+  <div class="col-6">
+    <span>calling from {{ callingUser?.username }}</span>
+  </div>
+  <div class="col-6">
+    <div btn-group>
+      <input
+        type="button"
+        class="btn btn-primary"
+        (click)="answerCall(callingUser)"
+        value="Answer"
+      />
+      <input
+        type="button"
+        class="btn btn-danger"
+        (click)="cancelCall(callingUser)"
+        value="Canceled"
+      />
+      <input
+        type="button"
+        class="btn btn-danger"
+        (click)="hangUp()"
+        value="hangUp"
+      />
+    </div>
+  </div>
 </div>
 
 <div calss="row">

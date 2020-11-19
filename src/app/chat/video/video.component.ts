@@ -1,8 +1,4 @@
 import { Component, OnInit } from "@angular/core";
-import { HubConnectionState } from "@microsoft/signalr";
-import { userInfo } from "os";
-import { UserInfo } from "src/app/interfaces/UserInfo";
-
 import { ConnectService } from "src/app/Services/connect.service";
 import { VideoService } from "src/app/Services/video.service";
 
@@ -15,11 +11,9 @@ import { VideoService } from "src/app/Services/video.service";
 })
 export class VideoComponent implements OnInit {
   userName: string = "jack";
-  remoteConnection: string = "";
-  myConnection: string = "";
   userInfo: any = {};
   users: any = [];
-  callingUser: string;
+  callingUser: any;
 
   mediaRecorder: any;
   mediaDevices = navigator.mediaDevices as any;
@@ -37,41 +31,68 @@ export class VideoComponent implements OnInit {
   ) {}
 
   ngOnInit() {
-    this.remoteVideo = document.getElementById(
-      "remoteVideo"
-    ) as HTMLVideoElement;
-    if (
-      this.connectService.connection.state == HubConnectionState.Disconnected
-    ) {
-      // this.connectService.connection.on(
-      //   "broadcastConnectionId",
-      //   (data: any) => {
-      //     this.myConnection = data;
-      //     this.userInfo.connectionId = data;
-      //   }
-      // );
-      // this.connectService.connection.on("onConnnect", function (userName) {
-      //   debugger;
-      //   var x = userName;
-      // });
-      this.connectService.connection.on("updateUserList", (userList: any) => {
+    this.connectService.connection.on(
+      "SendConnectionId",
+      (connectionId: any) => {
         debugger;
-        this.users = [];
-        userList.forEach((element) => {
+        sessionStorage.setItem("connectionId", connectionId);
+      }
+    );
+
+    this.connectService.connection.on("updateUserList", (userList: any) => {
+      debugger;
+      var connectionId = sessionStorage.getItem("connectionId");
+      this.users = [];
+      userList.forEach((element) => {
+        if (connectionId != element.connectionId) {
           this.users.push({
             userName: element.username,
             connectionId: element.connectionId,
+            inCall: element.inCall,
           });
-        });
+        }
       });
+    });
 
-      this.connectService.connection.on("IncomingCall", (user: any) => {
+    this.connectService.connection.on("IncomingCall", (user: any) => {
+      debugger;
+      this.callingUser = user;
+    });
+
+    this.connectService.connection.on("CallEnded", (massage: any) => {
+      debugger;
+      alert(massage);
+    });
+
+    this.connectService.connection.on(
+      "CallDeclined",
+      (decliningUser: any, massage: any) => {
         debugger;
-        this.callingUser = user.username;
-      });
+        alert(massage);
+      }
+    );
 
-      this.connectService.start();
-    }
+    this.connectService.connection.on("CallAccepted", (callingUser: any) => {
+      debugger;
+      alert(callingUser.username + " " + "Accept your call");
+    });
+
+    this.connectService.connection.on(
+      "CallEnded",
+      (callingUser: any, massage: any) => {
+        debugger;
+        alert(massage);
+      }
+    );
+
+    this.connectService.start();
+  }
+
+  DisConnect() {
+    debugger;
+    this.connectService.connection.invoke("Disconnected").catch((err) => {
+      console.error(err);
+    });
   }
 
   connect() {
@@ -82,18 +103,41 @@ export class VideoComponent implements OnInit {
       .catch((err) => {
         console.error(err);
       });
+
   }
 
   CallUser(userIndex: number) {
     let user = this.users[userIndex];
-    debugger;
     this.connectService.connection.invoke("CallUser", user).catch((err) => {
       console.error(err);
     });
   }
 
-  answerCall() {
+  answerCall(targetUser: any) {
     debugger;
+    this.connectService.connection
+      .invoke("AnswerCall", true, targetUser)
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
+  cancelCall(callingUser: any) {
+    debugger;
+    var reson = "Busy";
+    this.connectService.connection
+      .invoke("CallDeclined", callingUser, reson)
+      .catch((err) => {
+        console.error(err);
+      });
+  }
+
+  hangUp() {
+    debugger;
+    this.connectService.connection.invoke("HangUp").catch((err) => {
+      console.error(err);
+    });
+    this.hangUpInternal();
   }
 
   // onConnnect(userName: any) {
@@ -133,7 +177,6 @@ export class VideoComponent implements OnInit {
 
   sendStreamOne(userStream: any) {
     var that = this;
-    userStream.connectionId = that.remoteConnection;
     this.videoService.sendStreamOne(userStream).subscribe(
       (stream) => {
         debugger;
@@ -173,7 +216,7 @@ export class VideoComponent implements OnInit {
 
   async shareScreen() {
     let that = this;
-    this.hangUp();
+    this.hangUpInternal();
     that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
     that.remoteVideo = document.getElementById(
       "remoteVideo"
@@ -188,7 +231,7 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  async hangUp() {
+  async hangUpInternal() {
     if (this.localStream != null) {
       this.localStream.getTracks().map(function (val) {
         val.stop();
