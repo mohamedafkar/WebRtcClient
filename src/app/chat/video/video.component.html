@@ -23,7 +23,7 @@
       value="DisConnect"
     />
   </div>
-  <!-- <div class="col-3">
+<!-- <div class="col-3">
     <div class="input-group">
       <label for="MyConnection">My Connection</label>
       <input
@@ -35,7 +35,7 @@
         [(ngModel)]="myConnection"
       />
     </div>
-  </div>
+  </div> -->
   <div class="col-3">
     <div class="form-group input-group">
       <label for="RemoteConnection">Remote Connection </label>
@@ -48,7 +48,15 @@
         [(ngModel)]="remoteConnection"
       />
     </div>
-  </div> -->
+  </div>
+</div>
+
+<div calss="row">
+  <ul *ngFor="let user of users; index as i">
+    <li>
+      <a (click)="CallUser(i)">{{ user.userName + "," + user.connectionId }}</a>
+    </li>
+  </ul>
 </div>
 
 <div calss="row">
@@ -77,14 +85,6 @@
       />
     </div>
   </div>
-</div>
-
-<div calss="row">
-  <ul *ngFor="let user of users; index as i">
-    <li>
-      <a (click)="CallUser(i)">{{ user.userName + "," + user.connectionId }}</a>
-    </li>
-  </ul>
 </div>
 
 <div class="row">

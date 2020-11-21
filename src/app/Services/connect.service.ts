@@ -12,14 +12,28 @@ export class ConnectService implements OnInit {
     .build();
   constructor() {}
 
-  ngOnInit(): void {}
-
-  public async onclose() {
+  ngOnInit(): void {
     this.connection.onclose(async () => {
       debugger;
       console.log("video Resconnecting...");
       await this.start();
     });
+
+    // this.connection.hub.stateChanged = function (state) {
+    //   debugger;
+    //   var stateConversion = {
+    //     0: "connecting",
+    //     1: "connected",
+    //     2: "reconnecting",
+    //     4: "disconnected",
+    //   };
+    //   console.log(
+    //     "SignalR state changed from: " +
+    //       stateConversion[state.oldState] +
+    //       " to: " +
+    //       stateConversion[state.newState]
+    //   );
+    // };
   }
 
   public async start() {
