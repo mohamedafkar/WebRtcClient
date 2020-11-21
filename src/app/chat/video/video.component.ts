@@ -1,9 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { HubConnectionState } from "@microsoft/signalr/dist/esm/HubConnection";
 import { ConnectService } from "src/app/Services/connect.service";
-import { VideoService } from "src/app/Services/video.service";
-
-//import adapter from "webrtc-adapter";
+import adapter from "webrtc-adapter";
 
 @Component({
   selector: "app-video",
@@ -12,34 +10,43 @@ import { VideoService } from "src/app/Services/video.service";
 })
 export class VideoComponent implements OnInit {
   peerConnectionConfig: RTCConfiguration = {
-    iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+    iceServers: [
+      { urls: "stun:stun.l.google.com:19302" },
+      {
+        urls: "turn:numb.viagenie.ca",
+        credential: "muazkh",
+        username: "webrtc@live.com",
+      },
+    ],
   };
-  userName: string = "jack";
-  userInfo: any = {};
+  userName: string = "A";
   users: any = [];
-  callingUser: any;
+  currentUser: string;
   targetUser: any;
-  connections: any = [];
+  peer: RTCPeerConnection;
 
   mediaRecorder: any;
   mediaDevices = navigator.mediaDevices as any;
-  // @ViewChild("localVideo", { static: false }) localVideo: HTMLVideoElement;
-  // @ViewChild("remoteVideo", { static: false }) remoteVideo: HTMLVideoElement;
   localVideo: any;
   remoteVideo: any;
   localStream: any;
   isAudio = true;
   isVideo = true;
-  constructor(
-    private connectService: ConnectService,
-    private videoService: VideoService
-  ) {}
+  constructor(private connectService: ConnectService) {}
 
   ngOnInit() {
+    var that = this;
+    that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
+    that.remoteVideo = document.getElementById(
+      "remoteVideo"
+    ) as HTMLVideoElement;
+    this.call();
+
     this.connectService.connection.on(
       "SendConnectionId",
       (connectionId: any) => {
         sessionStorage.setItem("connectionId", connectionId);
+        that.currentUser = connectionId;
       }
     );
 
@@ -58,11 +65,12 @@ export class VideoComponent implements OnInit {
     });
 
     this.connectService.connection.on("IncomingCall", (user: any) => {
-      this.callingUser = user;
+      this.targetUser = user;
     });
 
-    this.connectService.connection.on("CallEnded", (massage: any) => {
-      alert(massage);
+    this.connectService.connection.on("CallAccepted", (targetUser: any) => {
+      //create offer and send it to A
+      this.createOffer(targetUser);
     });
 
     this.connectService.connection.on(
@@ -72,10 +80,6 @@ export class VideoComponent implements OnInit {
       }
     );
 
-    this.connectService.connection.on("CallAccepted", (callingUser: any) => {
-      this.initiateOffer(callingUser, this.localStream); //jack
-    });
-
     this.connectService.connection.on(
       "CallEnded",
       (callingUser: any, massage: any) => {
@@ -83,21 +87,25 @@ export class VideoComponent implements OnInit {
       }
     );
 
-    this.connectService.connection.on(
-      "receiveSignal",
-      (signalingUser: any, signal: string) => {
-        this.newSignal(signalingUser.connectionId, signal);
-      }
-    );
+    this.connectService.connection.on("OfferBack", (targetOffer: string) => {
+      var obj = JSON.parse(targetOffer);
+      this.handleRecieveCall(obj);
+    });
+    this.connectService.connection.on("AnswerBack", (targetOffer: string) => {
+      var obj = JSON.parse(targetOffer);
+      this.handleAnswer(obj);
+    });
 
-    // //afkar
-    // this.connectService.connection.on("SendData", (stream: any) => {
-    //   debugger;
-    //   this.remoteVideo.srcObject = stream;
-    //   this.localVideo.onloadedmetadata = function (e) {
-    //     this.localVideo.play();
-    //   };
-    // });
+    this.connectService.connection.on("IceCandidate", (Candidate: string) => {
+      var obj = JSON.parse(Candidate);
+      this.iCECandidate(obj);
+    });
+    // this.connectService.connection.on(
+    //   "receiveSignal",
+    //   (signalingUser: any, signal: string) => {
+    //     this.newSignal(signalingUser.connectionId, signal);
+    //   }
+    // );
 
     this.connectService.start();
   }
@@ -107,6 +115,175 @@ export class VideoComponent implements OnInit {
       this.connectService.connection.invoke("Disconnected").catch((err) => {
         console.error(err);
       });
+    }
+  }
+
+  createOffer(targetUser: any) {
+    try {
+      var that = this;
+      this.peer = this.createPeer(targetUser);
+      this.localStream.getTracks().forEach(function (track) {
+        that.peer.addTrack(track, that.localStream);
+      });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  createPeer(targetUser?: any) {
+    try {
+      const peerConnection = new RTCPeerConnection(this.peerConnectionConfig);
+      peerConnection.onicecandidate = (evt) =>
+        this.handleICECandidateEvent(evt, targetUser);
+
+      peerConnection.ontrack = (evt) =>
+        this.handleTrackEvent(evt, this.remoteVideo);
+      peerConnection.onnegotiationneeded = () =>
+        this.handleNegotiationNeededEvent(targetUser);
+      return peerConnection;
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  handleICECandidateEvent(e, targetUser) {
+    try {
+      if (e.candidate) {
+        const payload = {
+          target: targetUser.connectionId,
+          candidate: e.candidate,
+        };
+        //socketRef.current.emit("ice-candidate", payload);
+        if (
+          this.connectService.connection.state == HubConnectionState.Connected
+        ) {
+          this.connectService.connection
+            .invoke(
+              "IceCandidate",
+              targetUser.connectionId,
+              JSON.stringify(payload)
+            )
+            .catch((err) => {
+              console.error(err);
+            });
+        }
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  handleTrackEvent(e, remoteStream) {
+    try {
+      if (e) {
+        console.log("remoteStream working");
+        remoteStream.srcObject = e.streams[0];
+        remoteStream.onloadedmetadata = function (e) {
+          remoteStream.play();
+        };
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  handleNegotiationNeededEvent(targetUser: any) {
+    try {
+      var that = this;
+      this.peer
+        .createOffer()
+        .then((offer) => {
+          return that.peer.setLocalDescription(offer);
+        })
+        .then(() => {
+          const payload = {
+            target: targetUser.connectionId,
+            caller: that.currentUser,
+            sdp: that.peer.localDescription,
+          };
+          // const payload = {
+          //   target: that.currentUser,
+          //   caller: targetUser.connectionId,
+          //   sdp: that.peer.localDescription,
+          // };
+          //socketRef.current.emit("offer", payload);
+          if (
+            that.connectService.connection.state == HubConnectionState.Connected
+          ) {
+            that.connectService.connection
+              .invoke(
+                "Offer",
+                that.targetUser.connectionId,
+                JSON.stringify(payload)
+              )
+              .catch((err) => {
+                console.error(err);
+              });
+          }
+        })
+        .catch((e) => console.log(e));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  handleRecieveCall(targetOffer: any) {
+    try {
+      var that = this;
+      this.peer = this.createPeer(this.targetUser);
+      //this.peer = this.createPeer();
+      const desc = new RTCSessionDescription(targetOffer.sdp);
+      this.peer
+        .setRemoteDescription(desc)
+        .then(() => {
+          that.localStream
+            .getTracks()
+            .forEach((track) => that.peer.addTrack(track, that.localStream));
+        })
+        .then(() => {
+          return this.peer.createAnswer();
+        })
+        .then((answer) => {
+          return this.peer.setLocalDescription(answer);
+        })
+        .then(() => {
+          const payload = {
+            target: that.targetUser.connectionId,
+            caller: that.currentUser,
+            sdp: that.peer.localDescription,
+          };
+          //socketRef.current.emit("answer", payload);
+          if (
+            that.connectService.connection.state == HubConnectionState.Connected
+          ) {
+            that.connectService.connection
+              .invoke(
+                "AnswerOffer",
+                that.targetUser.connectionId,
+                JSON.stringify(payload)
+              )
+              .catch((err) => {
+                console.error(err);
+              });
+          }
+        });
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  handleAnswer(CallerOffer: any) {
+    try {
+      const desc = new RTCSessionDescription(CallerOffer.sdp);
+      this.peer.setRemoteDescription(desc).catch((e) => console.log(e));
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  iCECandidate(candidate: any) {
+    try {
+      var cand = candidate.candidate;
+      const myCandidate = new RTCIceCandidate(cand);
+      this.peer.addIceCandidate(myCandidate).catch((e) => console.error(e));
+    } catch (error) {
+      console.error(error);
     }
   }
 
@@ -124,7 +301,7 @@ export class VideoComponent implements OnInit {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
       let user = this.users[userIndex];
       this.targetUser = this.users[userIndex];
-      this.call();
+      //this.call();
       this.connectService.connection.invoke("CallUser", user).catch((err) => {
         console.error(err);
       });
@@ -133,6 +310,7 @@ export class VideoComponent implements OnInit {
 
   answerCall(targetUser: any) {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
+      //this.call();
       this.connectService.connection
         .invoke("AnswerCall", true, targetUser)
         .catch((err) => {
@@ -140,162 +318,6 @@ export class VideoComponent implements OnInit {
         });
     }
   }
-
-  newSignal(partnerClientId: string, data: string) {
-    var signal = JSON.parse(data);
-    var connection;
-    if (this.connections && this.connections.length > 0) {
-      connection = this.connections[partnerClientId];
-    } else {
-      connection = this.initializeConnection(partnerClientId);
-    }
-
-    // Route signal based on type
-    if (signal.sdp) {
-      console.log("WebRTC: sdp signal");
-      this.receivedSdpSignal(connection, partnerClientId, signal.sdp);
-    } else if (signal.candidate) {
-      console.log("WebRTC: candidate signal");
-      this.receivedCandidateSignal(
-        connection,
-        partnerClientId,
-        signal.candidate
-      );
-    } else {
-      console.log("WebRTC: adding null candidate");
-      connection.addIceCandidate(
-        null,
-        () => console.log("WebRTC: added null candidate successfully"),
-        () => console.log("WebRTC: cannot add null candidate")
-      );
-    }
-  }
-
-  receivedSdpSignal(connection, partnerClientId: string, sdp: any) {
-    var that = this;
-    connection.setRemoteDescription(new RTCSessionDescription(sdp), () => {
-      if (connection.remoteDescription.type == "offer") {
-        connection.addTrack(null, that.localStream); // add our audio/video stream
-        connection.createAnswer().then((desc) => {
-          connection.setLocalDescription(desc, () => {
-            that.sendHubSignal(
-              JSON.stringify({ sdp: connection.localDescription }),
-              partnerClientId
-            );
-          });
-        });
-      } else connection.remoteDescription.type == "answer";
-      {
-        console.log("WebRTC: remote Description type answer");
-      }
-    });
-  }
-
-  receivedCandidateSignal(connection, partnerClientId: string, candidate) {
-    connection.addIceCandidate(
-      new RTCIceCandidate(candidate),
-      () => console.log("WebRTC: added candidate successfully"),
-      () => console.log("WebRTC: cannot add candidate")
-    );
-  }
-
-  initiateOffer(callingUser: any, stream: MediaStream) {
-    var that = this;
-    //callingUser //jack the one mm called him
-    debugger;
-    var connection = this.initializeConnection(callingUser.connectionId); // // get a connection for the given partner
-    //connection.addTrack(null, stream); // add our audio/video stream
-    stream.getTracks().forEach(function (track) {
-      connection.addTrack(track, stream);
-    });
-    console.log("WebRTC: Added local stream");
-
-    connection
-      .createOffer()
-      .then((offer) => {
-        connection
-          .setLocalDescription(offer)
-          .then(() => {
-            console.log("WebRTC: set Local Description: ");
-            console.log("connection before sending offer ", connection);
-            setTimeout(() => {
-              that.sendHubSignal(
-                JSON.stringify({ sdp: connection.localDescription }),
-                callingUser.connectionId
-              );
-            }, 1000);
-          })
-          .catch((err) =>
-            console.error("WebRTC: Error while setting local description", err)
-          );
-      })
-      .catch(function (err) {
-        debugger;
-        console.log("WebRTC: Error while creating offer " + err);
-      });
-  }
-
-  sendHubSignal(candidate: string, partnerClientId: string) {
-    console.log("candidate", candidate);
-    console.log("SignalR: called sendhubsignal ");
-    this.connectService.connection
-      .invoke("SendSignal", candidate, partnerClientId)
-      .catch((err) => console.error("WebRTC: Error while creating offer", err));
-  }
-
-  initializeConnection(partnerClientId) {
-    var connection = new RTCPeerConnection(this.peerConnectionConfig);
-
-    connection.onicecandidate = (evt) =>
-      this.callbackIceCandidate(evt, connection, partnerClientId);
-
-    // Add stream handler callback
-    connection.ontrack = (evt) => this.callbackOnTrack(connection, evt);
-
-    // connection.onremovetrack = (evt) =>
-    //   this.callbackRemoveStream(connection, evt);
-
-    // Store away the connection based on username
-    //
-    this.connections.push(partnerClientId);
-    return connection;
-  }
-
-  //call backs
-  // stream removed
-  // callbackRemoveStream(connection, evt) {
-  //   var otherAudio = document.querySelector(".video.partner");
-  //   // otherAudio.objectsrc = "";
-  // }
-  callbackIceCandidate(evt, connection, partnerClientId) {
-    if (evt.candidate) {
-      // Found a new candidate
-      console.log("WebRTC: new ICE candidate");
-      //console.log("evt.candidate: ", evt.candidate);
-      this.sendHubSignal(
-        JSON.stringify({ candidate: evt.candidate }),
-        partnerClientId
-      );
-    } else {
-      // Null candidate means we are done collecting candidates.
-      console.log("WebRTC: ICE candidate gathering complete");
-      this.sendHubSignal(JSON.stringify({ candidate: null }), partnerClientId);
-    }
-  }
-  callbackOnTrack(connection, evt) {
-    // console.log("WebRTC: called callbackAddStream");
-    // var myVideo = document.querySelector(".video.mine");
-    //myVideo.srcObject = evt.streams[0];;
-    debugger;
-    this.attachMediaStream(evt);
-  }
-  attachMediaStream(evt) {
-    debugger;
-    if ((this.remoteVideo, this.remoteVideo.srcObject !== evt.stream)) {
-      this.remoteVideo = evt.stream;
-    }
-  }
-  //
 
   cancelCall(callingUser: any) {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
@@ -316,14 +338,9 @@ export class VideoComponent implements OnInit {
       this.hangUpInternal();
     }
   }
-  remoteConnection: string;
+
   async call() {
     let that = this;
-    //defind
-    that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
-    that.remoteVideo = document.getElementById(
-      "remoteVideo"
-    ) as HTMLVideoElement;
     //video
     if (that.mediaDevices.getUserMedia) {
       that.mediaDevices
@@ -334,18 +351,7 @@ export class VideoComponent implements OnInit {
           that.localVideo.onloadedmetadata = function (e) {
             that.localVideo.play();
           };
-          //afkar
-          // debugger;
-          // localStream.getVideoTracks().forEach( s => {   });
-          // that.connectService.connection
-          //   .invoke(
-          //     "StreamData",
-          //     that.remoteConnection,
-
-          //   )
-          //   .catch((err) => {
-          //     console.error(err);
-          //   });
+          //that.remoteVideo.srcObject = localStream;
         })
         .catch(function (err) {
           console.log("Something went wrong! " + err);
@@ -359,9 +365,6 @@ export class VideoComponent implements OnInit {
     let that = this;
     this.hangUpInternal();
     that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
-    that.remoteVideo = document.getElementById(
-      "remoteVideo"
-    ) as HTMLVideoElement;
     //share
     if (that.mediaDevices.getUserMedia) {
       this.localStream = await that.mediaDevices.getDisplayMedia({

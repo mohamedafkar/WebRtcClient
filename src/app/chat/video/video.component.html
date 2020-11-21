@@ -23,7 +23,7 @@
       value="DisConnect"
     />
   </div>
-<!-- <div class="col-3">
+  <!-- <div class="col-3">
     <div class="input-group">
       <label for="MyConnection">My Connection</label>
       <input
@@ -61,20 +61,20 @@
 
 <div calss="row">
   <div class="col-6">
-    <span>calling from {{ callingUser?.username }}</span>
+    <span>calling from {{ targetUser?.username }}</span>
   </div>
   <div class="col-6">
     <div btn-group>
       <input
         type="button"
         class="btn btn-primary"
-        (click)="answerCall(callingUser)"
+        (click)="answerCall(targetUser)"
         value="Answer"
       />
       <input
         type="button"
         class="btn btn-danger"
-        (click)="cancelCall(callingUser)"
+        (click)="cancelCall(targetUser)"
         value="Canceled"
       />
       <input

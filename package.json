@@ -21,6 +21,7 @@
     "@angular/router": "~8.0.3",
     "@microsoft/signalr": "^5.0.0",
     "@types/dom-mediacapture-record": "^1.0.7",
+    "adapterjs": "^0.15.5",
     "bootstrap": "^4.5.3",
     "rxjs": "~6.4.0",
     "tslib": "^1.9.0",
