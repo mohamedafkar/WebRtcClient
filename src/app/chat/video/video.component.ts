@@ -25,6 +25,8 @@ export class VideoComponent implements OnInit {
   localStream: any;
   isAudio = true;
   isVideo = true;
+  ringtoneEl: any;
+
   constructor(private connectService: ConnectService) {}
 
   ngOnInit() {
@@ -33,6 +35,8 @@ export class VideoComponent implements OnInit {
     that.remoteVideo = document.getElementById(
       "remoteVideo"
     ) as HTMLVideoElement;
+    that.ringtoneEl = document.getElementById("ringtone") as HTMLAudioElement;
+
     this.call();
 
     this.connectService.connection.on(
@@ -59,16 +63,20 @@ export class VideoComponent implements OnInit {
 
     this.connectService.connection.on("IncomingCall", (user: any) => {
       this.targetUser = user;
+      this.ringtoneEl.play();
     });
 
     this.connectService.connection.on("CallAccepted", (targetUser: any) => {
-      //create offer and send it to A
+      this.ringtoneEl.currentTime = 0;
+      this.ringtoneEl.pause();
       this.createOffer(targetUser);
     });
 
     this.connectService.connection.on(
       "CallDeclined",
       (decliningUser: any, massage: any) => {
+        this.ringtoneEl.currentTime = 0;
+        this.ringtoneEl.pause();
         alert(massage);
       }
     );
@@ -94,12 +102,6 @@ export class VideoComponent implements OnInit {
       var obj = JSON.parse(Candidate);
       this.iCECandidate(obj);
     });
-    // this.connectService.connection.on(
-    //   "receiveSignal",
-    //   (signalingUser: any, signal: string) => {
-    //     this.newSignal(signalingUser.connectionId, signal);
-    //   }
-    // );
 
     this.connectService.start();
   }
@@ -295,7 +297,7 @@ export class VideoComponent implements OnInit {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
       let user = this.users[userIndex];
       this.targetUser = this.users[userIndex];
-      //this.call();
+      this.ringtoneEl.play();
       this.connectService.connection.invoke("CallUser", user).catch((err) => {
         console.error(err);
       });
@@ -305,6 +307,8 @@ export class VideoComponent implements OnInit {
   answerCall(targetUser: any) {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
       //this.call();
+      this.ringtoneEl.currentTime = 0;
+      this.ringtoneEl.pause();
       this.connectService.connection
         .invoke("AnswerCall", true, targetUser)
         .catch((err) => {
@@ -315,6 +319,8 @@ export class VideoComponent implements OnInit {
 
   cancelCall(callingUser: any) {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
+      this.ringtoneEl.currentTime = 0;
+      this.ringtoneEl.pause();
       var reson = "Busy";
       this.connectService.connection
         .invoke("CallDeclined", callingUser, reson)
