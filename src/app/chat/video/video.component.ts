@@ -335,6 +335,7 @@ export class VideoComponent implements OnInit {
       this.connectService.connection.invoke("HangUp").catch((err) => {
         console.error(err);
       });
+      this.peer.close();
       this.hangUpInternal();
     }
   }
@@ -408,9 +409,11 @@ export class VideoComponent implements OnInit {
 
   async hangUpInternal() {
     if (this.localStream != null) {
-      this.localStream.getTracks().map(function (val) {
-        val.stop();
-      });
+      // this.localStream.getTracks().map(function (val) {
+      //   val.stop();
+      // });
+
+      this.remoteVideo.srcObject = null;
     }
     this.isAudio = true;
     this.isVideo = true;
