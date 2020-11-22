@@ -1,13 +1,13 @@
 import { Injectable, OnInit } from "@angular/core";
 import * as signalR from "@microsoft/signalr";
-import { Observable, pipe } from "rxjs";
+import { environment } from "src/environments/environment";
 
 @Injectable({
   providedIn: "root",
 })
 export class ConnectService implements OnInit {
   public connection: any = new signalR.HubConnectionBuilder()
-    .withUrl("https://localhost:44389/ConnectionHub")
+    .withUrl(environment.hubUrl + "ConnectionHub")
     //.withAutomaticReconnect()
     .build();
   constructor() {}

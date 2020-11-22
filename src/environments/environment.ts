@@ -3,7 +3,9 @@
 // The list of file replacements can be found in `angular.json`.
 
 export const environment = {
-  production: false
+  production: false,
+  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  hubUrl: "http://localhost:55648/",
 };
 
 /*

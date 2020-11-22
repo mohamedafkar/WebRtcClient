@@ -1,7 +1,7 @@
 import { Component, OnInit } from "@angular/core";
 import { HubConnectionState } from "@microsoft/signalr/dist/esm/HubConnection";
 import { ConnectService } from "src/app/Services/connect.service";
-import adapter from "webrtc-adapter";
+import { environment } from "src/environments/environment";
 
 @Component({
   selector: "app-video",
@@ -10,14 +10,7 @@ import adapter from "webrtc-adapter";
 })
 export class VideoComponent implements OnInit {
   peerConnectionConfig: RTCConfiguration = {
-    iceServers: [
-      { urls: "stun:stun.l.google.com:19302" },
-      {
-        urls: "turn:numb.viagenie.ca",
-        credential: "muazkh",
-        username: "webrtc@live.com",
-      },
-    ],
+    iceServers: environment.iceServers,
   };
   userName: string = "A";
   users: any = [];
@@ -84,6 +77,7 @@ export class VideoComponent implements OnInit {
       "CallEnded",
       (callingUser: any, massage: any) => {
         alert(massage);
+        that.remoteVideo.srcObject = null;
       }
     );
 
@@ -351,7 +345,6 @@ export class VideoComponent implements OnInit {
           that.localVideo.onloadedmetadata = function (e) {
             that.localVideo.play();
           };
-          //that.remoteVideo.srcObject = localStream;
         })
         .catch(function (err) {
           console.log("Something went wrong! " + err);
@@ -361,17 +354,49 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  async shareScreen() {
-    let that = this;
-    this.hangUpInternal();
-    that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
-    //share
+  async cam() {
+    var that = this;
     if (that.mediaDevices.getUserMedia) {
-      this.localStream = await that.mediaDevices.getDisplayMedia({
+      that.mediaDevices
+        .getUserMedia({ audio: true, video: true })
+        .then(function (localStream: MediaStream) {
+          that.localStream = localStream;
+          that.localVideo.srcObject = localStream;
+          that.localVideo.onloadedmetadata = function (e) {
+            that.localVideo.play();
+          };
+
+          that.localStream.getTracks().forEach(function (track) {
+            var sender = that.peer.getSenders().find(function (s) {
+              return s.track.kind == track.kind;
+            });
+            sender.replaceTrack(track);
+          });
+        })
+        .catch(function (err) {
+          console.log("Something went wrong! " + err);
+        });
+    } else {
+      console.log("Check your camera connnect");
+    }
+  }
+  async shareScreen() {
+    //this.hangUpInternal();
+    var that = this;
+    this.localStream = null;
+    if (this.mediaDevices.getUserMedia) {
+      this.localStream = await this.mediaDevices.getDisplayMedia({
         audio: true,
         video: true,
       });
-      that.localVideo.srcObject = this.localStream;
+      this.localVideo.srcObject = this.localStream;
+
+      this.localStream.getTracks().forEach(function (track) {
+        var sender = that.peer.getSenders().find(function (s) {
+          return s.track.kind == track.kind;
+        });
+        sender.replaceTrack(track);
+      });
     }
   }
 

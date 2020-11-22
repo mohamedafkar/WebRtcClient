@@ -16,12 +16,12 @@
       (click)="connect()"
       value="connect"
     />
-    <input
+    <!-- <input
       type="button"
       class="btn btn-info"
       (click)="DisConnect()"
       value="DisConnect"
-    />
+    /> -->
   </div>
   <!-- <div class="col-3">
     <div class="input-group">
@@ -36,7 +36,7 @@
       />
     </div>
   </div> -->
-  <div class="col-3">
+  <!-- <div class="col-3">
     <div class="form-group input-group">
       <label for="RemoteConnection">Remote Connection </label>
       <input
@@ -48,7 +48,7 @@
         [(ngModel)]="remoteConnection"
       />
     </div>
-  </div>
+  </div> -->
 </div>
 
 <div calss="row">
@@ -97,17 +97,12 @@
 </div>
 <div class="row">
   <div class="col-6 btn-group">
+    <input type="button" class="btn btn-primary" (click)="cam()" value="Cam" />
     <input
       type="button"
-      class="btn btn-primary"
-      (click)="call()"
-      value="call"
-    />
-    <input
-      type="button"
-      class="btn btn-danger"
-      (click)="hangUp()"
-      value="HangUp"
+      class="btn btn-info"
+      (click)="shareScreen()"
+      value="Share Screen"
     />
     <input
       type="button"
@@ -121,51 +116,11 @@
       (click)="muteAudio()"
       value="Mute Audio"
     />
-    <input
-      type="button"
-      class="btn btn-info"
-      (click)="shareScreen()"
-      value="Share Screen"
-    />
-    <input
+    <!-- <input
       type="button"
       class="btn btn-dark"
       (click)="record()"
       value="Record"
-    />
+    /> -->
   </div>
 </div>
-
-<!-- <script>
-
-        $(document).ready(function () {
-                   var that = this;
-            var element = document.getElementById("videoElement");
-            if (navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ audio: true, video: true })
-                    .then(function (stream) {
-                        debugger;
-                        element.srcObject = stream;
-                        //that.send(that.conId,stream.id);
-
-                        let mediaRecorderObj = new MediaRecorder(stream);
-                        let chunks = [];
-
-                        mediaRecorderObj.start();
-                        mediaRecorderObj.ondataavailable = function (ev) {
-                            debugger;
-                            var x = chunks.push(ev.data);
-                            debugger;
-                        }
-
-
-                    })
-                    .catch(function (err0r) {
-                        console.log("Something went wrong!");
-                    });
-            }
-            });
-
-          
-
-    </script> -->
