@@ -66,18 +66,21 @@
   <div class="col-6">
     <div btn-group>
       <input
+       [hidden] = "answerButtonhidden"
         type="button"
         class="btn btn-primary"
         (click)="answerCall(targetUser)"
         value="Answer"
       />
       <input
+      [hidden] = "cancelButtonhidden"
         type="button"
         class="btn btn-danger"
         (click)="cancelCall(targetUser)"
         value="Canceled"
       />
       <input
+      [hidden] = "hangupButtonhidden"
         type="button"
         class="btn btn-danger"
         (click)="hangUp()"

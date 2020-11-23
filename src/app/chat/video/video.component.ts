@@ -26,6 +26,9 @@ export class VideoComponent implements OnInit {
   isAudio = true;
   isVideo = true;
   ringtoneEl: any;
+  answerButtonhidden: boolean = true;
+  cancelButtonhidden: boolean = true;
+  hangupButtonhidden: boolean = true;
 
   constructor(private connectService: ConnectService) {}
 
@@ -64,11 +67,14 @@ export class VideoComponent implements OnInit {
     this.connectService.connection.on("IncomingCall", (user: any) => {
       this.targetUser = user;
       this.ringtoneEl.play();
+      this.answerButtonhidden = false;
+      this.cancelButtonhidden = false;
     });
 
     this.connectService.connection.on("CallAccepted", (targetUser: any) => {
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
+      this.hangupButtonhidden = false;
       this.createOffer(targetUser);
     });
 
@@ -77,15 +83,20 @@ export class VideoComponent implements OnInit {
       (decliningUser: any, massage: any) => {
         this.ringtoneEl.currentTime = 0;
         this.ringtoneEl.pause();
-        alert(massage);
+        this.answerButtonhidden = true;
+        this.hangupButtonhidden = true;
+        this.cancelButtonhidden = true;
       }
     );
 
     this.connectService.connection.on(
       "CallEnded",
       (callingUser: any, massage: any) => {
-        alert(massage);
+        this.answerButtonhidden = true;
+        this.hangupButtonhidden = true;
+        this.cancelButtonhidden = true;
         that.remoteVideo.srcObject = null;
+        //alert(massage);
       }
     );
 
@@ -309,6 +320,9 @@ export class VideoComponent implements OnInit {
       //this.call();
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
+      this.answerButtonhidden = true;
+      this.hangupButtonhidden = false;
+      this.cancelButtonhidden = true;
       this.connectService.connection
         .invoke("AnswerCall", true, targetUser)
         .catch((err) => {
@@ -321,6 +335,9 @@ export class VideoComponent implements OnInit {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
+      debugger;
+      this.answerButtonhidden = true;
+      this.cancelButtonhidden = true;
       var reson = "Busy";
       this.connectService.connection
         .invoke("CallDeclined", callingUser, reson)
@@ -332,6 +349,10 @@ export class VideoComponent implements OnInit {
 
   hangUp() {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
+      this.answerButtonhidden = true;
+      this.hangupButtonhidden = true;
+      this.cancelButtonhidden = true;
+
       this.connectService.connection.invoke("HangUp").catch((err) => {
         console.error(err);
       });
