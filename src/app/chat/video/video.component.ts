@@ -335,7 +335,7 @@ export class VideoComponent implements OnInit {
     if (this.connectService.connection.state == HubConnectionState.Connected) {
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
-      debugger;
+
       this.answerButtonhidden = true;
       this.cancelButtonhidden = true;
       var reson = "Busy";
@@ -394,6 +394,8 @@ export class VideoComponent implements OnInit {
             that.localVideo.play();
           };
 
+          if (that.peer.connectionState == "connected") {
+          }
           that.localStream.getTracks().forEach(function (track) {
             var sender = that.peer.getSenders().find(function (s) {
               return s.track.kind == track.kind;
@@ -419,12 +421,14 @@ export class VideoComponent implements OnInit {
       });
       this.localVideo.srcObject = this.localStream;
 
-      this.localStream.getTracks().forEach(function (track) {
-        var sender = that.peer.getSenders().find(function (s) {
-          return s.track.kind == track.kind;
+      if (that.peer.connectionState == "connected") {
+        this.localStream.getTracks().forEach(function (track) {
+          var sender = that.peer.getSenders().find(function (s) {
+            return s.track.kind == track.kind;
+          });
+          sender.replaceTrack(track);
         });
-        sender.replaceTrack(track);
-      });
+      }
     }
   }
 
