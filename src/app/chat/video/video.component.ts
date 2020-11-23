@@ -384,7 +384,7 @@ export class VideoComponent implements OnInit {
 
   async cam() {
     var that = this;
-    if (that.mediaDevices.getUserMedia) {
+    if (this.mediaDevices && this.mediaDevices.getUserMedia) {
       that.mediaDevices
         .getUserMedia({ audio: true, video: true })
         .then(function (localStream: MediaStream) {
@@ -414,7 +414,7 @@ export class VideoComponent implements OnInit {
     //this.hangUpInternal();
     var that = this;
     this.localStream = null;
-    if (this.mediaDevices.getUserMedia) {
+    if (this.mediaDevices && this.mediaDevices.getUserMedia) {
       this.localStream = await this.mediaDevices.getDisplayMedia({
         audio: true,
         video: true,
@@ -455,43 +455,11 @@ export class VideoComponent implements OnInit {
   }
 
   async record() {
-    let that = this;
-
-    // if (this.localStream) {
-    //
-    //   var x = this.localStream.captureStream();
-    // }
-
     // if (this.localStream) {
     //   this.mediaRecorder = new MediaRecorder(this.localStream);
-    //   //let chunks = [];
-    //   this.mediaRecorder.start(500);
+    //   let chunks = [];
     //   this.mediaRecorder.ondataavailable = function (ev) {
-    //     //
-    //     //that.sendStreamOne({ stream: ev.data });
-    //     // var reader = new FileReader();
-    //     // reader.readAsDataURL(ev.data);
-    //     // reader.onload = reader.onload = readSuccess;
-    //     // function readSuccess(evt) {
-    //     //
-    //     //   that.sendStreamOne({ stream: evt.target.result });
-    //     // }
-    //     // const blob = this.response;
-    //     // const reader = new FileReader();
-    //     // reader.onloadend = function (event) {
-    //     //   const img = document.createElement("img");
-    //     //   //img.src = this.result;
-    //     //   document.getElementById("container").appendChild(img);
-    //     // };
-    //     // reader.readAsDataURL(ev.data);
-
-    //
-    //     //this.sleep(100);
-    //     //var x = chunks.push(ev.data);
-    //   };
-  }
-
-  async sleep(msec) {
-    return new Promise((resolve) => setTimeout(resolve, msec));
+    //      this.chunks.push(ev.data);
+    //   }
   }
 }
