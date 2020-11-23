@@ -40,6 +40,7 @@ export class ConnectService implements OnInit {
     try {
       await this.connection.start();
       console.log("video connected");
+      console.log(environment.hubUrl + "ConnectionHub");
       return true;
     } catch (err) {
       console.log(err);
@@ -48,18 +49,6 @@ export class ConnectService implements OnInit {
       return false;
     }
   }
-
-  // public async stop() {
-  //   try {
-  //     await ;
-  //     console.log("video stop");
-  //     return true;
-  //   } catch (err) {
-  //     console.log(err);
-  //     console.log("video Disconnected");
-  //     return false;
-  //   }
-  // }
 
   stop = async (): Promise<boolean> => {
     let result;
