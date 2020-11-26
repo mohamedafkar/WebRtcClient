@@ -284,11 +284,27 @@ export class VideoComponent implements OnInit {
     }
   }
 
+  iCECandidateReseved: any = [];
   iCECandidate(candidate: any) {
     try {
-      var cand = candidate.candidate;
-      const myCandidate = new RTCIceCandidate(cand);
-      this.peer.addIceCandidate(myCandidate).catch((e) => console.error(e));
+      var that = this;
+      this.iCECandidateReseved.push(candidate.candidate);
+      //var cand = candidate.candidate;
+      debugger;
+      if (
+        this.peer &&
+        this.peer.remoteDescription &&
+        this.peer.remoteDescription.sdp != null &&
+        this.peer.remoteDescription.type == "answer"
+      )
+        if (this.iCECandidateReseved && this.iCECandidateReseved.length > 0) {
+          this.iCECandidateReseved.forEach((element) => {
+            let myCandidate = new RTCIceCandidate(element);
+            that.peer
+              .addIceCandidate(myCandidate)
+              .catch((e) => console.error(e));
+          });
+        }
     } catch (error) {
       console.error(error);
     }
@@ -323,6 +339,7 @@ export class VideoComponent implements OnInit {
       this.answerButtonhidden = true;
       this.hangupButtonhidden = false;
       this.cancelButtonhidden = true;
+      this.iCECandidateReseved = [];
       this.connectService.connection
         .invoke("AnswerCall", true, targetUser)
         .catch((err) => {

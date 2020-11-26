@@ -4,7 +4,14 @@
 
 export const environment = {
   production: false,
-  iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+  iceServers: [
+    { urls: "stun:numb.viagenie.ca" },
+    {
+      urls: "turn:numb.viagenie.ca",
+      username: "mohamed_afkar@yahoo.com",
+      credential: "098098",
+    },
+  ],
   hubUrl: "http://localhost:55648/",
 };
 
