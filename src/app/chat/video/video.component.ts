@@ -19,6 +19,8 @@ export class VideoComponent implements OnInit {
   peer: RTCPeerConnection;
 
   mediaRecorder: any;
+  videoConstraints: any = {};
+  audioConstraints: any = {};
   mediaDevices = navigator.mediaDevices as any;
   localVideo: any;
   remoteVideo: any;
@@ -34,6 +36,16 @@ export class VideoComponent implements OnInit {
 
   ngOnInit() {
     var that = this;
+    this.videoConstraints = {
+      frameRate: 25,
+      video: true,
+    };
+    this.audioConstraints = {
+      sampleSize: 16,
+      channelCount: 2,
+      echoCancellation: true,
+      audio: true,
+    };
     that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
     that.remoteVideo = document.getElementById(
       "remoteVideo"
@@ -96,11 +108,12 @@ export class VideoComponent implements OnInit {
         this.hangupButtonhidden = true;
         this.cancelButtonhidden = true;
         that.remoteVideo.srcObject = null;
-        //alert(massage);
+        alert(massage);
       }
     );
 
     this.connectService.connection.on("OfferBack", (targetOffer: string) => {
+      //debugger;
       var obj = JSON.parse(targetOffer);
       this.handleRecieveCall(obj);
     });
@@ -127,25 +140,29 @@ export class VideoComponent implements OnInit {
 
   createOffer(targetUser: any) {
     try {
-      var that = this;
       this.peer = this.createPeer(targetUser);
-      this.localStream.getTracks().forEach(function (track) {
-        that.peer.addTrack(track, that.localStream);
-      });
     } catch (error) {
       console.error(error);
     }
   }
   createPeer(targetUser?: any) {
     try {
+      var that = this;
       const peerConnection = new RTCPeerConnection(this.peerConnectionConfig);
+
+      that.localStream.getTracks().forEach(function (track) {
+        peerConnection.addTrack(track, that.localStream);
+      });
+
       peerConnection.onicecandidate = (evt) =>
         this.handleICECandidateEvent(evt, targetUser);
 
       peerConnection.ontrack = (evt) =>
         this.handleTrackEvent(evt, this.remoteVideo);
+
       peerConnection.onnegotiationneeded = () =>
         this.handleNegotiationNeededEvent(targetUser);
+
       return peerConnection;
     } catch (error) {
       console.error(error);
@@ -153,13 +170,13 @@ export class VideoComponent implements OnInit {
   }
 
   handleICECandidateEvent(e, targetUser) {
+    debugger;
     try {
       if (e.candidate) {
         const payload = {
           target: targetUser.connectionId,
           candidate: e.candidate,
         };
-        //socketRef.current.emit("ice-candidate", payload);
         if (
           this.connectService.connection.state == HubConnectionState.Connected
         ) {
@@ -178,6 +195,7 @@ export class VideoComponent implements OnInit {
       console.error(error);
     }
   }
+
   handleTrackEvent(e, remoteStream) {
     try {
       if (e) {
@@ -191,8 +209,10 @@ export class VideoComponent implements OnInit {
       console.error(error);
     }
   }
+
   handleNegotiationNeededEvent(targetUser: any) {
     try {
+      debugger;
       var that = this;
       this.peer
         .createOffer()
@@ -205,12 +225,6 @@ export class VideoComponent implements OnInit {
             caller: that.currentUser,
             sdp: that.peer.localDescription,
           };
-          // const payload = {
-          //   target: that.currentUser,
-          //   caller: targetUser.connectionId,
-          //   sdp: that.peer.localDescription,
-          // };
-          //socketRef.current.emit("offer", payload);
           if (
             that.connectService.connection.state == HubConnectionState.Connected
           ) {
@@ -232,16 +246,17 @@ export class VideoComponent implements OnInit {
   }
   handleRecieveCall(targetOffer: any) {
     try {
+      debugger;
       var that = this;
       this.peer = this.createPeer(this.targetUser);
-      //this.peer = this.createPeer();
+
       const desc = new RTCSessionDescription(targetOffer.sdp);
       this.peer
         .setRemoteDescription(desc)
         .then(() => {
-          that.localStream
-            .getTracks()
-            .forEach((track) => that.peer.addTrack(track, that.localStream));
+          // that.localStream
+          //   .getTracks()
+          //   .forEach((track) => that.peer.addTrack(track, that.localStream));
         })
         .then(() => {
           return this.peer.createAnswer();
@@ -288,23 +303,15 @@ export class VideoComponent implements OnInit {
   iCECandidate(candidate: any) {
     try {
       var that = this;
-      this.iCECandidateReseved.push(candidate.candidate);
-      //var cand = candidate.candidate;
-      debugger;
-      if (
-        this.peer &&
-        this.peer.remoteDescription &&
-        this.peer.remoteDescription.sdp != null &&
-        this.peer.remoteDescription.type == "answer"
-      )
-        if (this.iCECandidateReseved && this.iCECandidateReseved.length > 0) {
-          this.iCECandidateReseved.forEach((element) => {
-            let myCandidate = new RTCIceCandidate(element);
-            that.peer
-              .addIceCandidate(myCandidate)
-              .catch((e) => console.error(e));
-          });
-        }
+      //this.iCECandidateReseved.push(candidate.candidate);
+      //setTimeout(function () {
+      //if (that.iCECandidateReseved && that.iCECandidateReseved.length > 0) {
+      // that.iCECandidateReseved.forEach((element) => {
+      let myCandidate = new RTCIceCandidate(candidate.candidate);
+      that.peer.addIceCandidate(myCandidate).catch((e) => console.error(e));
+      // });
+      //}
+      //}, 3000);
     } catch (error) {
       console.error(error);
     }
@@ -383,7 +390,10 @@ export class VideoComponent implements OnInit {
     //video
     if (that.mediaDevices.getUserMedia) {
       that.mediaDevices
-        .getUserMedia({ audio: true, video: true })
+        .getUserMedia({
+          audio: that.audioConstraints,
+          video: that.videoConstraints,
+        })
         .then(function (localStream: MediaStream) {
           that.localStream = localStream;
           that.localVideo.srcObject = localStream;
@@ -403,7 +413,10 @@ export class VideoComponent implements OnInit {
     var that = this;
     if (this.mediaDevices && this.mediaDevices.getUserMedia) {
       that.mediaDevices
-        .getUserMedia({ audio: true, video: true })
+        .getUserMedia({
+          audio: that.audioConstraints,
+          video: that.videoConstraints,
+        })
         .then(function (localStream: MediaStream) {
           that.localStream = localStream;
           that.localVideo.srcObject = localStream;
@@ -433,8 +446,8 @@ export class VideoComponent implements OnInit {
     this.localStream = null;
     if (this.mediaDevices && this.mediaDevices.getUserMedia) {
       this.localStream = await this.mediaDevices.getDisplayMedia({
-        audio: true,
-        video: true,
+        audio: that.audioConstraints,
+        video: that.videoConstraints,
       });
       this.localVideo.srcObject = this.localStream;
 

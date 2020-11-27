@@ -4,22 +4,6 @@
 
 export const environment = {
   production: false,
-  iceServers: [
-    { urls: "stun:numb.viagenie.ca" },
-    {
-      urls: "turn:numb.viagenie.ca",
-      username: "mohamed_afkar@yahoo.com",
-      credential: "098098",
-    },
-  ],
-  hubUrl: "http://localhost:55648/",
+  iceServers: [{ urls: "stun:stun.l.google.com:19305" }],
+  hubUrl: "https://192.168.100.72/server/",
 };
-
-/*
- * For easier debugging in development mode, you can import the following file
- * to ignore zone related error stack frames such as `zone.run`, `zoneDelegate.invokeTask`.
- *
- * This import should be commented out in production mode because it will have a negative impact
- * on performance if an error is thrown.
- */
-// import 'zone.js/dist/zone-error';  // Included with Angular CLI.

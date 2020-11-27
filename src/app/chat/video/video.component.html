@@ -66,21 +66,21 @@
   <div class="col-6">
     <div btn-group>
       <input
-       [hidden] = "answerButtonhidden"
+        [hidden]="answerButtonhidden"
         type="button"
         class="btn btn-primary"
         (click)="answerCall(targetUser)"
         value="Answer"
       />
       <input
-      [hidden] = "cancelButtonhidden"
+        [hidden]="cancelButtonhidden"
         type="button"
         class="btn btn-danger"
         (click)="cancelCall(targetUser)"
         value="Canceled"
       />
       <input
-      [hidden] = "hangupButtonhidden"
+        [hidden]="hangupButtonhidden"
         type="button"
         class="btn btn-danger"
         (click)="hangUp()"
@@ -92,7 +92,7 @@
 
 <div class="row">
   <div class="col-6">
-    <video autoplay="true" id="localVideo"></video>
+    <video autoplay="true" muted id="localVideo"></video>
     <video autoplay="true" id="remoteVideo"></video>
   </div>
 </div>
