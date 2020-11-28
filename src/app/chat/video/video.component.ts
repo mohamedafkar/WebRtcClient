@@ -41,15 +41,18 @@ export class VideoComponent implements OnInit {
       video: true,
     };
     this.audioConstraints = {
+      sampleRate: 48000,
       sampleSize: 16,
       channelCount: 2,
       echoCancellation: true,
       audio: true,
     };
     that.localVideo = document.getElementById("localVideo") as HTMLVideoElement;
+    this.localVideo.volume = 0;
     that.remoteVideo = document.getElementById(
       "remoteVideo"
     ) as HTMLVideoElement;
+    this.remoteVideo.volume = 0.9;
     that.ringtoneEl = document.getElementById("ringtone") as HTMLAudioElement;
 
     this.call();
