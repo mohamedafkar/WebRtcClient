@@ -5,5 +5,5 @@
 export const environment = {
   production: false,
   iceServers: [{ urls: "stun:stun.l.google.com:19305" }],
-  hubUrl: "https://192.168.100.72/server/",
+  hubUrl: "https://192.168.43.81/server/",
 };

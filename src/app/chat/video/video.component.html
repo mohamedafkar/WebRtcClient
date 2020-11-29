@@ -16,39 +16,7 @@
       (click)="connect()"
       value="connect"
     />
-    <!-- <input
-      type="button"
-      class="btn btn-info"
-      (click)="DisConnect()"
-      value="DisConnect"
-    /> -->
   </div>
-  <!-- <div class="col-3">
-    <div class="input-group">
-      <label for="MyConnection">My Connection</label>
-      <input
-        type="text"
-        id="MyConnection"
-        name="MyConnection"
-        class="form-control"
-        placeholder="My Connection"
-        [(ngModel)]="myConnection"
-      />
-    </div>
-  </div> -->
-  <!-- <div class="col-3">
-    <div class="form-group input-group">
-      <label for="RemoteConnection">Remote Connection </label>
-      <input
-        type="text"
-        id="RemoteConnection"
-        name="RemoteConnection"
-        class="form-control"
-        placeholder="Remote Connection"
-        [(ngModel)]="remoteConnection"
-      />
-    </div>
-  </div> -->
 </div>
 
 <div calss="row">
@@ -63,8 +31,18 @@
   <div class="col-6">
     <span>calling from {{ targetUser?.username }}</span>
   </div>
-  <div class="col-6">
-    <div btn-group>
+</div>
+
+<div class="row">
+  <div class="col-sm-6 col-md-6 col-lg-6">
+    <video autoplay="true" muted id="localVideo"></video>
+    <video autoplay="true" id="remoteVideo"></video>
+  </div>
+</div>
+
+<div calss="row">
+  <div class="col-6 btn-group">
+    <div>
       <input
         [hidden]="answerButtonhidden"
         type="button"
@@ -88,14 +66,9 @@
       />
     </div>
   </div>
+  <div class="col-6"></div>
 </div>
 
-<div class="row">
-  <div class="col-6">
-    <video autoplay="true" muted id="localVideo"></video>
-    <video autoplay="true" id="remoteVideo"></video>
-  </div>
-</div>
 <div class="row">
   <div class="col-6 btn-group">
     <input type="button" class="btn btn-primary" (click)="cam()" value="Cam" />
