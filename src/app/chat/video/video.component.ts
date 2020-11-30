@@ -201,6 +201,8 @@ export class VideoComponent implements OnInit {
 
   handleTrackEvent(e, remoteStream) {
     try {
+      if (remoteStream.srcObject) return;
+
       if (e) {
         console.log("remoteStream working");
         remoteStream.srcObject = e.streams[0];
@@ -247,6 +249,7 @@ export class VideoComponent implements OnInit {
       console.error(error);
     }
   }
+
   handleRecieveCall(targetOffer: any) {
     try {
       debugger;
@@ -306,15 +309,17 @@ export class VideoComponent implements OnInit {
   iCECandidate(candidate: any) {
     try {
       var that = this;
-      //this.iCECandidateReseved.push(candidate.candidate);
-      //setTimeout(function () {
-      //if (that.iCECandidateReseved && that.iCECandidateReseved.length > 0) {
-      // that.iCECandidateReseved.forEach((element) => {
+      debugger;
+
+      // this.iCECandidateReseved.push(candidate.candidate);
+      // setTimeout(function () {
+      //   if (that.iCECandidateReseved && that.iCECandidateReseved.length > 0) {
+      //     that.iCECandidateReseved.forEach((element) => {
       let myCandidate = new RTCIceCandidate(candidate.candidate);
       that.peer.addIceCandidate(myCandidate).catch((e) => console.error(e));
-      // });
-      //}
-      //}, 3000);
+      //     });
+      //   }
+      // }, 3000);
     } catch (error) {
       console.error(error);
     }
