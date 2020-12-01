@@ -90,7 +90,7 @@ export class VideoComponent implements OnInit {
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
       this.hangupButtonhidden = false;
-      this.createOffer(targetUser);
+      this.createPeer(targetUser); //Creaet offer
     });
 
     this.connectService.connection.on(
@@ -101,6 +101,7 @@ export class VideoComponent implements OnInit {
         this.answerButtonhidden = true;
         this.hangupButtonhidden = true;
         this.cancelButtonhidden = true;
+        alert(massage);
       }
     );
 
@@ -110,13 +111,15 @@ export class VideoComponent implements OnInit {
         this.answerButtonhidden = true;
         this.hangupButtonhidden = true;
         this.cancelButtonhidden = true;
-        that.remoteVideo.srcObject = null;
+        this.remoteVideo.srcObject = null;
+        this.peer.close();
+        this.peer = null;
         alert(massage);
       }
     );
 
     this.connectService.connection.on("OfferBack", (targetOffer: string) => {
-      //debugger;
+      //
       var obj = JSON.parse(targetOffer);
       this.handleRecieveCall(obj);
     });
@@ -141,13 +144,13 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  createOffer(targetUser: any) {
-    try {
-      this.peer = this.createPeer(targetUser);
-    } catch (error) {
-      console.error(error);
-    }
-  }
+  // createOffer(targetUser: any) {
+  //   try {
+  //     this.peer = this.createPeer(targetUser);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }
   createPeer(targetUser?: any) {
     try {
       var that = this;
@@ -158,13 +161,13 @@ export class VideoComponent implements OnInit {
       });
 
       peerConnection.onicecandidate = (evt) =>
-        this.handleICECandidateEvent(evt, targetUser);
+        this.onicecandidateEvent(evt, targetUser);
 
       peerConnection.ontrack = (evt) =>
-        this.handleTrackEvent(evt, this.remoteVideo);
+        this.ontrackEvent(evt, this.remoteVideo);
 
       peerConnection.onnegotiationneeded = () =>
-        this.handleNegotiationNeededEvent(targetUser);
+        this.onnegotiationneededEvent(targetUser);
 
       return peerConnection;
     } catch (error) {
@@ -172,10 +175,10 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  handleICECandidateEvent(e, targetUser) {
-    debugger;
+  onicecandidateEvent(e, targetUser) {
     try {
-      if (e.candidate) {
+      if (e && e.candidate) {
+        debugger;
         const payload = {
           target: targetUser.connectionId,
           candidate: e.candidate,
@@ -199,25 +202,24 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  handleTrackEvent(e, remoteStream) {
+  ontrackEvent(e, remoteStream) {
     try {
-      if (remoteStream.srcObject) return;
+      if (remoteStream) return;
 
       if (e) {
         console.log("remoteStream working");
         remoteStream.srcObject = e.streams[0];
-        remoteStream.onloadedmetadata = function (e) {
-          remoteStream.play();
-        };
+        // remoteStream.onloadedmetadata = function (e) {
+        //   remoteStream.play();
+        // };
       }
     } catch (error) {
       console.error(error);
     }
   }
 
-  handleNegotiationNeededEvent(targetUser: any) {
+  onnegotiationneededEvent(targetUser: any) {
     try {
-      debugger;
       var that = this;
       this.peer
         .createOffer()
@@ -250,13 +252,60 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  handleRecieveCall(targetOffer: any) {
+  async handleRecieveCall(targetOffer: any) {
     try {
       debugger;
       var that = this;
-      this.peer = this.createPeer(this.targetUser);
 
+      this.peer = this.createPeer(this.targetUser);
+      console.log("desc.type " + JSON.stringify(targetOffer));
       const desc = new RTCSessionDescription(targetOffer.sdp);
+
+      console.log("desc.type " + desc.type);
+      console.log("desc.type " + JSON.stringify(desc));
+      // //new
+      // // If you get an offer, you need to reply with an answer.
+      // if (desc.type == "offer") {
+      //   debugger;
+      //   await this.peer.setRemoteDescription(desc);
+
+      //   // const stream = await navigator.mediaDevices.getUserMedia({
+      //   //   video: this.videoConstraints,
+      //   //   audio: this.audioConstraints,
+      //   // });
+      //   // stream
+      //   //   .getTracks()
+      //   //   .forEach((track) => this.peer.addTrack(track, stream));
+
+      //   await this.peer.setLocalDescription(await this.peer.createAnswer());
+
+      //   const payload = {
+      //     target: that.targetUser.connectionId,
+      //     caller: that.currentUser,
+      //     sdp: that.peer.localDescription,
+      //   };
+      //   //socketRef.current.emit("answer", payload);
+      //   if (
+      //     that.connectService.connection.state == HubConnectionState.Connected
+      //   ) {
+      //     that.connectService.connection
+      //       .invoke(
+      //         "AnswerOffer",
+      //         that.targetUser.connectionId,
+      //         JSON.stringify(payload)
+      //       )
+      //       .catch((err) => {
+      //         console.error(err);
+      //       });
+      //   }
+      // } else if (desc.type == "answer") {
+      //   debugger;
+      //   await this.peer.setRemoteDescription(desc);
+      // } else {
+      //   console.log("Unsupported SDP type.");
+      // }
+      // //new
+
       this.peer
         .setRemoteDescription(desc)
         .then(() => {
@@ -309,7 +358,6 @@ export class VideoComponent implements OnInit {
   iCECandidate(candidate: any) {
     try {
       var that = this;
-      debugger;
 
       // this.iCECandidateReseved.push(candidate.candidate);
       // setTimeout(function () {
@@ -388,9 +436,10 @@ export class VideoComponent implements OnInit {
       this.connectService.connection.invoke("HangUp").catch((err) => {
         console.error(err);
       });
-      this.peer.close();
-      this.hangUpInternal();
     }
+    this.peer.close();
+    this.peer = null;
+    this.hangUpInternal();
   }
 
   async call() {
@@ -448,6 +497,7 @@ export class VideoComponent implements OnInit {
       console.log("Check your camera connnect");
     }
   }
+
   async shareScreen() {
     //this.hangUpInternal();
     var that = this;
