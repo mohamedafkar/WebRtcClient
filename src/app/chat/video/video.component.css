@@ -8,3 +8,8 @@
   max-height: 30%;
   background: #000000;
 }
+
+#remoteVideo {
+  height: 400px;
+  background: #000000;
+}
