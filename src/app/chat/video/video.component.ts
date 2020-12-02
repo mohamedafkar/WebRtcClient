@@ -52,7 +52,6 @@ export class VideoComponent implements OnInit {
     that.remoteVideo = document.getElementById(
       "remoteVideo"
     ) as HTMLVideoElement;
-    this.remoteVideo.volume = 0.9;
     that.ringtoneEl = document.getElementById("ringtone") as HTMLAudioElement;
 
     this.call();
@@ -90,7 +89,7 @@ export class VideoComponent implements OnInit {
       this.ringtoneEl.currentTime = 0;
       this.ringtoneEl.pause();
       this.hangupButtonhidden = false;
-      this.createPeer(targetUser); //Creaet offer
+      this.createOffer(targetUser);
     });
 
     this.connectService.connection.on(
@@ -144,14 +143,14 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  // createOffer(targetUser: any) {
-  //   try {
-  //     this.peer = this.createPeer(targetUser);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }
-  createPeer(targetUser?: any) {
+  createOffer(targetUser: any) {
+    try {
+      this.peer = this.createPeer(targetUser, "offer");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+  createPeer(targetUser?: any, status?: string) {
     try {
       var that = this;
       const peerConnection = new RTCPeerConnection(this.peerConnectionConfig);
@@ -166,8 +165,10 @@ export class VideoComponent implements OnInit {
       peerConnection.ontrack = (evt) =>
         this.ontrackEvent(evt, this.remoteVideo);
 
-      peerConnection.onnegotiationneeded = () =>
-        this.onnegotiationneededEvent(targetUser);
+      if (status == "offer") {
+        peerConnection.onnegotiationneeded = () =>
+          this.onnegotiationneededEvent(targetUser);
+      }
 
       return peerConnection;
     } catch (error) {
@@ -204,14 +205,14 @@ export class VideoComponent implements OnInit {
 
   ontrackEvent(e, remoteStream) {
     try {
-      if (remoteStream) return;
+      if (!remoteStream) return;
 
       if (e) {
         console.log("remoteStream working");
         remoteStream.srcObject = e.streams[0];
-        // remoteStream.onloadedmetadata = function (e) {
-        //   remoteStream.play();
-        // };
+        remoteStream.onloadedmetadata = function (e) {
+          remoteStream.play();
+        };
       }
     } catch (error) {
       console.error(error);
@@ -257,12 +258,12 @@ export class VideoComponent implements OnInit {
       debugger;
       var that = this;
 
-      this.peer = this.createPeer(this.targetUser);
-      console.log("desc.type " + JSON.stringify(targetOffer));
+      this.peer = this.createPeer(this.targetUser, "answer");
+      //console.log("desc.type " + JSON.stringify(targetOffer));
       const desc = new RTCSessionDescription(targetOffer.sdp);
 
-      console.log("desc.type " + desc.type);
-      console.log("desc.type " + JSON.stringify(desc));
+      //console.log("desc.type " + desc.type);
+      //console.log("desc.type " + JSON.stringify(desc));
       // //new
       // // If you get an offer, you need to reply with an answer.
       // if (desc.type == "offer") {
