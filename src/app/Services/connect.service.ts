@@ -7,14 +7,13 @@ import { environment } from "src/environments/environment";
 })
 export class ConnectService implements OnInit {
   public connection: any = new signalR.HubConnectionBuilder()
-    .withUrl(environment.hubUrl + "ConnectionHub")
+    .withUrl(environment.hubUrl)
     //.withAutomaticReconnect()
     .build();
   constructor() {}
 
   ngOnInit(): void {
     this.connection.onclose(async () => {
-      debugger;
       console.log("video Resconnecting...");
       await this.start();
     });
