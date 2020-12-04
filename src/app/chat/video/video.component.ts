@@ -67,7 +67,7 @@ export class VideoComponent implements OnInit {
     this.connectService.connection.on("updateUserList", (userList: any) => {
       var connectionId = sessionStorage.getItem("connectionId");
       this.users = [];
-      userList.forEach((element) => {
+      userList.forEach((element: any) => {
         if (connectionId != element.connectionId) {
           this.users.push({
             userName: element.username,
@@ -111,14 +111,15 @@ export class VideoComponent implements OnInit {
         this.hangupButtonhidden = true;
         this.cancelButtonhidden = true;
         this.remoteVideo.srcObject = null;
-        this.peer.close();
-        this.peer = null;
+        if (this.peer) {
+          this.peer.close();
+          this.peer = null;
+        }
         alert(massage);
       }
     );
 
     this.connectService.connection.on("OfferBack", (targetOffer: string) => {
-      //
       var obj = JSON.parse(targetOffer);
       this.handleRecieveCall(obj);
     });
@@ -135,13 +136,13 @@ export class VideoComponent implements OnInit {
     this.connectService.start();
   }
 
-  DisConnect() {
-    if (this.connectService.connection.state == HubConnectionState.Connected) {
-      this.connectService.connection.invoke("Disconnected").catch((err) => {
-        console.error(err);
-      });
-    }
-  }
+  // DisConnect() {
+  //   if (this.connectService.connection.state == HubConnectionState.Connected) {
+  //     this.connectService.connection.invoke("Disconnected").catch((err) => {
+  //       console.error(err);
+  //     });
+  //   }
+  // }
 
   createOffer(targetUser: any) {
     try {
@@ -208,7 +209,7 @@ export class VideoComponent implements OnInit {
       if (!remoteStream) return;
 
       if (e) {
-        console.log("remoteStream working");
+        console.log("Remote Stream working");
         remoteStream.srcObject = e.streams[0];
         remoteStream.onloadedmetadata = function (e) {
           remoteStream.play();
@@ -257,13 +258,8 @@ export class VideoComponent implements OnInit {
     try {
       debugger;
       var that = this;
-
       this.peer = this.createPeer(this.targetUser, "answer");
-      //console.log("desc.type " + JSON.stringify(targetOffer));
       const desc = new RTCSessionDescription(targetOffer.sdp);
-
-      //console.log("desc.type " + desc.type);
-      //console.log("desc.type " + JSON.stringify(desc));
       // //new
       // // If you get an offer, you need to reply with an answer.
       // if (desc.type == "offer") {
@@ -355,20 +351,11 @@ export class VideoComponent implements OnInit {
     }
   }
 
-  iCECandidateReseved: any = [];
   iCECandidate(candidate: any) {
     try {
       var that = this;
-
-      // this.iCECandidateReseved.push(candidate.candidate);
-      // setTimeout(function () {
-      //   if (that.iCECandidateReseved && that.iCECandidateReseved.length > 0) {
-      //     that.iCECandidateReseved.forEach((element) => {
       let myCandidate = new RTCIceCandidate(candidate.candidate);
       that.peer.addIceCandidate(myCandidate).catch((e) => console.error(e));
-      //     });
-      //   }
-      // }, 3000);
     } catch (error) {
       console.error(error);
     }
@@ -403,7 +390,6 @@ export class VideoComponent implements OnInit {
       this.answerButtonhidden = true;
       this.hangupButtonhidden = false;
       this.cancelButtonhidden = true;
-      this.iCECandidateReseved = [];
       this.connectService.connection
         .invoke("AnswerCall", true, targetUser)
         .catch((err) => {
@@ -438,8 +424,10 @@ export class VideoComponent implements OnInit {
         console.error(err);
       });
     }
-    this.peer.close();
-    this.peer = null;
+    if (this.peer) {
+      this.peer.close();
+      this.peer = null;
+    }
     this.hangUpInternal();
   }
 
