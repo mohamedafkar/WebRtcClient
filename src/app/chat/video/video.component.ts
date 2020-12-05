@@ -18,16 +18,16 @@ export class VideoComponent implements OnInit, OnDestroy {
   targetUser: any;
   peer: RTCPeerConnection;
 
+  mediaDevices = navigator.mediaDevices as any;
   mediaRecorder: any;
   videoConstraints: any = {};
   audioConstraints: any = {};
-  mediaDevices = navigator.mediaDevices as any;
   localVideo: any;
   remoteVideo: any;
+  ringtoneEl: any;
   localStream: any;
   isAudio = true;
   isVideo = true;
-  ringtoneEl: any;
   answerButtonhidden: boolean = true;
   cancelButtonhidden: boolean = true;
   hangupButtonhidden: boolean = true;
