@@ -12,12 +12,12 @@ export class VideoComponent implements OnInit, OnDestroy {
   peerConnectionConfig: RTCConfiguration = {
     iceServers: environment.iceServers,
   };
+  peer: RTCPeerConnection;
+
   userName: string = "A";
   users: any = [];
   currentUser: string;
   targetUser: any;
-
-  peer: RTCPeerConnection;
 
   mediaDevices = navigator.mediaDevices as any;
   mediaRecorder: any;
