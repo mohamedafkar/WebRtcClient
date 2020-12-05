@@ -16,6 +16,7 @@ export class VideoComponent implements OnInit, OnDestroy {
   users: any = [];
   currentUser: string;
   targetUser: any;
+
   peer: RTCPeerConnection;
 
   mediaDevices = navigator.mediaDevices as any;
