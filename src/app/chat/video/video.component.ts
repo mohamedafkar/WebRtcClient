@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit } from "@angular/core";
+import { Component, Input, OnDestroy, OnInit } from "@angular/core";
 import { HubConnectionState } from "@microsoft/signalr/dist/esm/HubConnection";
 import { ConnectService } from "src/app/Services/connect.service";
 import { environment } from "src/environments/environment";
@@ -13,6 +13,8 @@ export class VideoComponent implements OnInit, OnDestroy {
     iceServers: environment.iceServers,
   };
   peer: RTCPeerConnection;
+
+  @Input("test") test: string;
 
   userName: string = "A";
   users: any = [];
@@ -42,6 +44,8 @@ export class VideoComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
+    debugger;
+    this.test;
     var that = this;
     this.videoConstraints = {
       frameRate: 25,
