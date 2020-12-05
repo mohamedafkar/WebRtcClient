@@ -157,6 +157,7 @@ export class VideoComponent implements OnInit, OnDestroy {
       console.error(error);
     }
   }
+
   createPeer(targetUser?: any, status?: string) {
     try {
       var that = this;
@@ -328,7 +329,6 @@ export class VideoComponent implements OnInit, OnDestroy {
             caller: that.currentUser,
             sdp: that.peer.localDescription,
           };
-          //socketRef.current.emit("answer", payload);
           if (
             that.connectService.connection.state == HubConnectionState.Connected
           ) {
