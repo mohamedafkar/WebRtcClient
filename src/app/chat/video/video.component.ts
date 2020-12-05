@@ -1,4 +1,4 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnDestroy, OnInit } from "@angular/core";
 import { HubConnectionState } from "@microsoft/signalr/dist/esm/HubConnection";
 import { ConnectService } from "src/app/Services/connect.service";
 import { environment } from "src/environments/environment";
@@ -8,7 +8,7 @@ import { environment } from "src/environments/environment";
   templateUrl: "./video.component.html",
   styleUrls: ["./video.component.css"],
 })
-export class VideoComponent implements OnInit {
+export class VideoComponent implements OnInit, OnDestroy {
   peerConnectionConfig: RTCConfiguration = {
     iceServers: environment.iceServers,
   };
@@ -33,6 +33,12 @@ export class VideoComponent implements OnInit {
   hangupButtonhidden: boolean = true;
 
   constructor(private connectService: ConnectService) {}
+  ngOnDestroy(): void {
+    if (this.peer) {
+      this.peer.close();
+      this.peer = null;
+    }
+  }
 
   ngOnInit() {
     var that = this;
